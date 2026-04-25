@@ -320,6 +320,10 @@ make tidy     # Sync go.mod and go.sum
 
 ---
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
+---
+
 ## License
 
 Proprietary — Gidana Platforms. All rights reserved.
