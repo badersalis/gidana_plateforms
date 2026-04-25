@@ -320,7 +320,14 @@ make tidy     # Sync go.mod and go.sum
 
 ---
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+<a
+  href="https://render.com/deploy?repo=https://github.com/badersalis/gidana_plateforms"
+>
+  <img
+    src="https://render.com/images/deploy-to-render-button.svg"
+    alt="Deploy to Render"
+  />
+</a>
 
 ---
 
