@@ -7,7 +7,6 @@ import (
 	"github.com/badersalis/gidana_backend/internal/config"
 	"github.com/badersalis/gidana_backend/internal/database"
 	"github.com/badersalis/gidana_backend/internal/routes"
-	"github.com/badersalis/gidana_backend/internal/storage"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,11 +19,10 @@ func main() {
 
 	database.Connect()
 
-	if config.App.UseFirebase {
-		if err := storage.Init(); err != nil {
-			log.Fatalf("Firebase Storage init failed: %v", err)
-		}
-		log.Println("Firebase Storage initialized")
+	if config.App.SupabaseURL != "" {
+		log.Println("Supabase Storage configured")
+	} else {
+		log.Println("Warning: SUPABASE_URL not set, falling back to local file storage")
 	}
 
 	if err := os.MkdirAll(config.App.UploadDir, 0755); err != nil {

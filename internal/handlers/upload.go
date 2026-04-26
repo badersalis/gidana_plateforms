@@ -24,7 +24,7 @@ func saveFile(c *gin.Context, fh *multipart.FileHeader) (string, error) {
 		return "", fmt.Errorf("invalid file type: only jpg, jpeg, png, gif, webp are allowed")
 	}
 
-	if config.App.UseFirebase {
+	if config.App.SupabaseURL != "" {
 		return storage.UploadFile(fh, "properties")
 	}
 

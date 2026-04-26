@@ -16,10 +16,9 @@ type Config struct {
 	JWTExpiryHours  int
 	UploadDir       string
 	MaxUploadSizeMB int64
-	UseFirebase      bool
-	FirebaseCredJSON string
-	FirebaseCredPath string
-	FirebaseBucket   string
+	SupabaseURL    string
+	SupabaseKey    string
+	SupabaseBucket string
 	AllowedOrigins  string
 }
 
@@ -30,8 +29,6 @@ func Load() {
 
 	jwtExpiry, _ := strconv.Atoi(getEnv("JWT_EXPIRY_HOURS", "72"))
 	maxUpload, _ := strconv.ParseInt(getEnv("MAX_UPLOAD_SIZE_MB", "5"), 10, 64)
-	useFirebase, _ := strconv.ParseBool(getEnv("USE_FIREBASE", "false"))
-
 	App = &Config{
 		AppEnv:          getEnv("APP_ENV", "development"),
 		Port:            getEnv("PORT", "8080"),
@@ -41,10 +38,9 @@ func Load() {
 		JWTExpiryHours:  jwtExpiry,
 		UploadDir:       getEnv("UPLOAD_DIR", "./uploads/properties"),
 		MaxUploadSizeMB: maxUpload,
-		UseFirebase:      useFirebase,
-		FirebaseCredJSON: getEnv("FIREBASE_CREDENTIALS_JSON", ""),
-		FirebaseCredPath: getEnv("FIREBASE_CREDENTIALS_PATH", ""),
-		FirebaseBucket:   getEnv("FIREBASE_BUCKET", ""),
+		SupabaseURL:     getEnv("SUPABASE_URL", ""),
+		SupabaseKey:     getEnv("SUPABASE_KEY", ""),
+		SupabaseBucket:  getEnv("SUPABASE_BUCKET", ""),
 		AllowedOrigins:  getEnv("ALLOWED_ORIGINS", "*"),
 	}
 }
