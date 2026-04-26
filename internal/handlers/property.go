@@ -182,14 +182,20 @@ func CreateProperty(c *gin.Context) {
 	for _, fh := range files {
 		url, err := saveFile(c, fh)
 		if err != nil {
-			continue
+			database.DB.Delete(&prop)
+			utils.InternalError(c, "Failed to upload image: "+err.Error())
+			return
 		}
 		img := models.PropertyImage{
 			Filename:   url,
 			PropertyID: prop.ID,
 			IsMain:     savedCount == 0,
 		}
-		database.DB.Create(&img)
+		if err := database.DB.Create(&img).Error; err != nil {
+			database.DB.Delete(&prop)
+			utils.InternalError(c, "Failed to save image record")
+			return
+		}
 		savedCount++
 	}
 
@@ -289,7 +295,10 @@ func AddPropertyImage(c *gin.Context) {
 		PropertyID: prop.ID,
 		IsMain:     imageCount == 0,
 	}
-	database.DB.Create(&img)
+	if err := database.DB.Create(&img).Error; err != nil {
+		utils.InternalError(c, "Failed to save image record")
+		return
+	}
 	utils.Created(c, img)
 }
 
