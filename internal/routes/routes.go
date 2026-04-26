@@ -12,13 +12,24 @@ import (
 )
 
 func Setup(r *gin.Engine) {
-	origins := strings.Split(config.App.AllowedOrigins, ",")
+	allowedOrigins := make(map[string]bool)
+	for _, o := range strings.Split(config.App.AllowedOrigins, ",") {
+		allowedOrigins[strings.TrimSpace(o)] = true
+	}
+
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     origins,
+		AllowOriginFunc: func(origin string) bool {
+			// React Native native (iOS/Android) sends no origin — always allow.
+			if origin == "" || origin == "null" {
+				return true
+			}
+			return allowedOrigins[origin] || allowedOrigins["*"]
+		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
+		MaxAge:           86400,
 	}))
 
 	r.Static("/uploads", "./uploads")
