@@ -197,6 +197,8 @@ func CreateProperty(c *gin.Context) {
 
 	database.DB.Preload("Images").First(&prop, prop.ID)
 	utils.Created(c, prop)
+
+	go notifyMatchingAlerts(prop)
 }
 
 func UpdateProperty(c *gin.Context) {

@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/badersalis/gidana_backend/internal/database"
 	"github.com/badersalis/gidana_backend/internal/middleware"
 	"github.com/badersalis/gidana_backend/internal/models"
 	"github.com/badersalis/gidana_backend/internal/utils"
+	appws "github.com/badersalis/gidana_backend/internal/ws"
 	"github.com/gin-gonic/gin"
 )
 
@@ -92,4 +95,56 @@ func DeleteAlert(c *gin.Context) {
 
 	database.DB.Delete(&alert)
 	utils.OK(c, gin.H{"message": "Alert deleted"})
+}
+
+// notifyMatchingAlerts finds all active alerts that match prop and notifies
+// their owners via WebSocket (if online) or Expo push (if offline).
+// It is called asynchronously after a new property is created.
+func notifyMatchingAlerts(prop models.Property) {
+	var alerts []models.Alert
+	database.DB.Where(
+		`is_active = true
+		 AND user_id != ?
+		 AND (neighborhood = '' OR neighborhood = ?)
+		 AND (property_type = '' OR property_type = ?)
+		 AND (transaction_type = '' OR transaction_type = ?)
+		 AND (min_rooms = 0 OR min_rooms <= ?)
+		 AND (max_price = 0 OR max_price >= ?)`,
+		prop.OwnerID,
+		prop.Neighborhood,
+		prop.PropertyType,
+		prop.TransactionType,
+		prop.Rooms,
+		prop.Price,
+	).Find(&alerts)
+
+	if len(alerts) == 0 {
+		return
+	}
+
+	title := "Nouvelle propriété disponible"
+	body := fmt.Sprintf("%s à %s — %s (%.0f %s)",
+		prop.PropertyType, prop.Neighborhood, prop.TransactionType, prop.Price, prop.Currency)
+	data := map[string]any{"property_id": prop.ID}
+
+	event := appws.Event{Type: "property_alert", Data: map[string]any{
+		"property_id":      prop.ID,
+		"title":            prop.Title,
+		"neighborhood":     prop.Neighborhood,
+		"property_type":    prop.PropertyType,
+		"transaction_type": prop.TransactionType,
+		"price":            prop.Price,
+		"currency":         prop.Currency,
+	}}
+
+	for _, alert := range alerts {
+		appws.H.Emit(alert.UserID, event)
+
+		if !appws.H.IsOnline(alert.UserID) {
+			var user models.User
+			if err := database.DB.Select("expo_push_token").First(&user, alert.UserID).Error; err == nil {
+				utils.SendExpoPush(user.ExpoPushToken, title, body, data)
+			}
+		}
+	}
 }
