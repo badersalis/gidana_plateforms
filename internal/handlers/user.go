@@ -83,6 +83,21 @@ func UploadProfilePicture(c *gin.Context) {
 	utils.OK(c, user)
 }
 
+func UpdatePushToken(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+
+	var input struct {
+		Token string `json:"expo_push_token" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		utils.BadRequest(c, err.Error())
+		return
+	}
+
+	database.DB.Model(&models.User{}).Where("id = ?", userID).Update("expo_push_token", input.Token)
+	utils.OK(c, gin.H{"message": "Push token updated"})
+}
+
 func ChangePassword(c *gin.Context) {
 	userID, _ := middleware.GetUserID(c)
 

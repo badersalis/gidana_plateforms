@@ -25,8 +25,8 @@ type Property struct {
 	HasWater        bool           `gorm:"default:false" json:"has_water"`
 	HasElectricity  bool           `gorm:"default:false" json:"has_electricity"`
 	ExactAddress    string         `gorm:"size:200" json:"exact_address"`
-	WhatsappContact string         `gorm:"size:20" json:"whatsapp_contact"`
-	PhoneContact    string         `gorm:"size:20" json:"phone_contact"`
+	WhatsappContact string         `gorm:"size:20" json:"-"`
+	PhoneContact    string         `gorm:"size:20" json:"-"`
 	Price           float64        `gorm:"not null" json:"price"`
 	Currency        string         `gorm:"size:5;default:'XOF'" json:"currency"`
 	IsAvailable     bool           `gorm:"default:true" json:"is_available"`

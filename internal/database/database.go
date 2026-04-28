@@ -47,6 +47,8 @@ func migrate() {
 		&models.Wallet{},
 		&models.Transaction{},
 		&models.SearchHistory{},
+		&models.Conversation{},
+		&models.Message{},
 	)
 	if err != nil {
 		log.Fatalf("Migration failed: %v", err)

@@ -26,8 +26,6 @@ type PropertyInput struct {
 	HasWater        bool    `json:"has_water" form:"has_water"`
 	HasElectricity  bool    `json:"has_electricity" form:"has_electricity"`
 	ExactAddress    string  `json:"exact_address" form:"exact_address"`
-	WhatsappContact string  `json:"whatsapp_contact" form:"whatsapp_contact"`
-	PhoneContact    string  `json:"phone_contact" form:"phone_contact"`
 	Price           float64 `json:"price" form:"price" binding:"required"`
 	Currency        string  `json:"currency" form:"currency"`
 }
@@ -165,8 +163,6 @@ func CreateProperty(c *gin.Context) {
 		HasWater:        input.HasWater,
 		HasElectricity:  input.HasElectricity,
 		ExactAddress:    input.ExactAddress,
-		WhatsappContact: input.WhatsappContact,
-		PhoneContact:    input.PhoneContact,
 		Price:           input.Price,
 		Currency:        currency,
 		OwnerID:         userID,
@@ -231,7 +227,6 @@ func UpdateProperty(c *gin.Context) {
 		"shower_type": input.ShowerType, "surface": input.Surface,
 		"has_courtyard": input.HasCourtyard, "has_water": input.HasWater,
 		"has_electricity": input.HasElectricity, "exact_address": input.ExactAddress,
-		"whatsapp_contact": input.WhatsappContact, "phone_contact": input.PhoneContact,
 		"price": input.Price,
 	}
 	if input.Currency != "" {

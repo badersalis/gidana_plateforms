@@ -48,12 +48,16 @@ func Setup(r *gin.Engine) {
 		auth.GET("/me", middleware.Auth(), handlers.GetMe)
 	}
 
+	// WebSocket
+	r.GET("/ws", handlers.ServeWS)
+
 	// User
 	users := api.Group("/users", middleware.Auth())
 	{
 		users.PUT("/profile", handlers.UpdateProfile)
 		users.POST("/profile-picture", handlers.UploadProfilePicture)
 		users.PUT("/password", handlers.ChangePassword)
+		users.PATCH("/push-token", handlers.UpdatePushToken)
 	}
 
 	// Properties
@@ -130,6 +134,16 @@ func Setup(r *gin.Engine) {
 		alerts.POST("", handlers.CreateAlert)
 		alerts.PUT("/:id", handlers.UpdateAlert)
 		alerts.DELETE("/:id", handlers.DeleteAlert)
+	}
+
+	// Messaging
+	convs := api.Group("/conversations", middleware.Auth())
+	{
+		convs.GET("", handlers.GetConversations)
+		convs.POST("", handlers.StartConversation)
+		convs.GET("/:id", handlers.GetConversation)
+		convs.POST("/:id/messages", handlers.SendMessage)
+		convs.DELETE("/:id/messages/:msgID", handlers.DeleteMessage)
 	}
 
 	// Search

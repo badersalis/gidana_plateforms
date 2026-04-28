@@ -23,6 +23,7 @@ type User struct {
 	Active         bool           `gorm:"default:true" json:"active"`
 	Locale         string         `gorm:"size:10;default:'fr'" json:"locale"`
 	Timezone       string         `gorm:"size:50;default:'UTC'" json:"timezone"`
+	ExpoPushToken  string         `gorm:"size:200" json:"-"`
 
 	Transactions  []Transaction  `gorm:"foreignKey:UserID" json:"-"`
 	Wallets       []Wallet       `gorm:"foreignKey:UserID" json:"-"`
