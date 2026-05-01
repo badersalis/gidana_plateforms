@@ -58,6 +58,7 @@ func Setup(r *gin.Engine) {
 		users.POST("/profile-picture", handlers.UploadProfilePicture)
 		users.PUT("/password", handlers.ChangePassword)
 		users.PATCH("/push-token", handlers.UpdatePushToken)
+		users.DELETE("/profile", handlers.RequestDeleteAccount)
 	}
 
 	// Properties

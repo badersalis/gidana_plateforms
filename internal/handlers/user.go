@@ -8,6 +8,7 @@ import (
 	"github.com/badersalis/gidana_backend/internal/models"
 	"github.com/badersalis/gidana_backend/internal/utils"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type UpdateProfileInput struct {
@@ -121,4 +122,58 @@ func ChangePassword(c *gin.Context) {
 	hash, _ := utils.HashPassword(input.NewPassword)
 	database.DB.Model(&user).Update("password_hash", hash)
 	utils.OK(c, gin.H{"message": "Password changed successfully"})
+}
+
+func RequestDeleteAccount(c *gin.Context) {
+	userID, _ := middleware.GetUserID(c)
+
+	var user models.User
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		utils.NotFound(c, "User not found")
+		return
+	}
+
+	// Prevent duplicate requests
+	var existing models.DeletedAccount
+	if err := database.DB.Where("user_id = ?", userID).First(&existing).Error; err == nil {
+		utils.BadRequest(c, "Account deletion already requested")
+		return
+	} else if err != gorm.ErrRecordNotFound {
+		utils.InternalError(c, "Failed to process deletion request")
+		return
+	}
+
+	snapshot := models.DeletedAccount{
+		UserID:         user.ID,
+		FirstName:      user.FirstName,
+		LastName:       user.LastName,
+		Email:          user.Email,
+		PhoneNumber:    user.PhoneNumber,
+		ProfilePicture: user.ProfilePicture,
+		Gender:         user.Gender,
+		DateOfBirth:    user.DateOfBirth,
+		MemberSince:    user.MemberSince,
+		Locale:         user.Locale,
+		Timezone:       user.Timezone,
+		RequestedAt:    time.Now(),
+		Status:         "pending",
+	}
+
+	if err := database.DB.Create(&snapshot).Error; err != nil {
+		utils.InternalError(c, "Failed to process deletion request")
+		return
+	}
+
+	// Deactivate immediately so existing tokens stop working, then soft-delete
+	database.DB.Model(&user).Update("active", false)
+	database.DB.Delete(&user)
+
+	utils.SendExpoPush(
+		user.ExpoPushToken,
+		"Deletion Request Received",
+		"Your account deletion request has been received. Our compliance team will review it and notify you once the process is complete.",
+		gin.H{"type": "account_deletion_requested"},
+	)
+
+	utils.OK(c, gin.H{"message": "Account deletion request submitted. You will be notified once reviewed."})
 }

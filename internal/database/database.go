@@ -49,6 +49,7 @@ func migrate() {
 		&models.SearchHistory{},
 		&models.Conversation{},
 		&models.Message{},
+		&models.DeletedAccount{},
 	)
 	if err != nil {
 		log.Fatalf("Migration failed: %v", err)
