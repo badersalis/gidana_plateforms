@@ -15,6 +15,37 @@ import (
 	"github.com/google/uuid"
 )
 
+// DeleteFile removes an object from Supabase Storage given its public URL.
+func DeleteFile(publicURL string) error {
+	prefix := fmt.Sprintf("%s/storage/v1/object/public/%s/", config.App.SupabaseURL, config.App.SupabaseBucket)
+	objectPath := strings.TrimPrefix(publicURL, prefix)
+	if objectPath == publicURL {
+		return fmt.Errorf("unrecognized storage URL: %s", publicURL)
+	}
+
+	deleteURL := fmt.Sprintf("%s/storage/v1/object/%s/%s",
+		config.App.SupabaseURL, config.App.SupabaseBucket, objectPath)
+
+	req, err := http.NewRequest(http.MethodDelete, deleteURL, nil)
+	if err != nil {
+		return fmt.Errorf("build request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+config.App.SupabaseKey)
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("delete: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 300 {
+		msg, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("supabase delete failed (%d): %s", resp.StatusCode, string(msg))
+	}
+	return nil
+}
+
 // UploadFile uploads a multipart file to Supabase Storage under the given folder
 // and returns its public URL. The bucket must already be set to public in Supabase.
 func UploadFile(fh *multipart.FileHeader, folder string) (string, error) {

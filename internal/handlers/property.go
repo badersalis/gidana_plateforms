@@ -245,13 +245,17 @@ func DeleteProperty(c *gin.Context) {
 	id := c.Param("id")
 
 	var prop models.Property
-	if err := database.DB.First(&prop, id).Error; err != nil {
+	if err := database.DB.Preload("Images").First(&prop, id).Error; err != nil {
 		utils.NotFound(c, "Property not found")
 		return
 	}
 	if prop.OwnerID != userID {
 		utils.Forbidden(c, "Not authorized")
 		return
+	}
+
+	for _, img := range prop.Images {
+		deleteStorageFile(img.Filename)
 	}
 
 	database.DB.Select("Images", "Rentals", "Reviews", "Favorites").Delete(&prop)
@@ -316,6 +320,7 @@ func DeletePropertyImage(c *gin.Context) {
 		return
 	}
 
+	deleteStorageFile(img.Filename)
 	database.DB.Delete(&img)
 	utils.OK(c, gin.H{"message": "Image deleted"})
 }
